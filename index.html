@@ -66,14 +66,16 @@
   var params = {};
   location.hash.replace(/^#/, '').split('&').forEach(function (kv) {
     var i = kv.indexOf('=');
-    if (i > 0) { try { params[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); } catch (e) {} }
+    if (i > 0) { var v = kv.slice(i + 1); try { v = decodeURIComponent(v); } catch (e) { v = unescape(v); } params[kv.slice(0, i)] = v; }
   });
   // Accept the app link and the reminders in either slot, so a swapped
   // variable in the Shortcut still works.
   var app = '', data = null;
   [params.a, params.d].forEach(function (v) {
     if (!v) return;
-    try { var j = JSON.parse(v); if (j && j.r) { data = j; return; } } catch (e) {}
+    // Parse the reminders even if extra characters got stuck to either end.
+    var a0 = v.indexOf('{'), a1 = v.lastIndexOf('}');
+    if (a0 >= 0 && a1 > a0) { try { var j = JSON.parse(v.slice(a0, a1 + 1)); if (j && j.r) { data = j; return; } } catch (e) {} }
     if (/^[a-z]+:\/\//i.test(v)) app = v.toLowerCase();
   });
   var appName = APPS[app] || 'the app';
@@ -98,7 +100,7 @@
 
   if (!data) {
     var raw = location.hash.slice(1);
-    sub.textContent = 'No reminders came through. Link received: ' + (raw ? raw.slice(0, 160) + (raw.length > 160 ? '…' : '') : '(empty)');
+    sub.textContent = 'No reminders came through. Link (' + raw.length + ' chars) ends with: ' + (raw ? raw.slice(-160) : '(empty)');
   } else {
     var t = dayNum(data.t);
     sub.textContent = t === today ? 'Synced from your Mac today.' : 'Last synced from your Mac ' + (today - t) + 'd ago.';
