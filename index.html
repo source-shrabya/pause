@@ -91,7 +91,8 @@
   var sub = document.getElementById('sub');
 
   if (!data) {
-    sub.textContent = 'No reminders came through. Check the Gate shortcut.';
+    var got = params.d || '';
+    sub.textContent = 'No reminders came through. Check the Gate shortcut. Received: ' + (got ? '"' + got.slice(0, 80) + (got.length > 80 ? '…' : '') + '"' : 'nothing after &d=');
   } else {
     var t = dayNum(data.t);
     sub.textContent = t === today ? 'Synced from your Mac today.' : 'Last synced from your Mac ' + (today - t) + 'd ago.';
