@@ -74,8 +74,14 @@
   [params.a, params.d].forEach(function (v) {
     if (!v) return;
     // Parse the reminders even if extra characters got stuck to either end.
-    var a0 = v.indexOf('{'), a1 = v.lastIndexOf('}');
-    if (a0 >= 0 && a1 > a0) { try { var j = JSON.parse(v.slice(a0, a1 + 1)); if (j && j.r) { data = j; return; } } catch (e) {} }
+    // The Mac encodes the list once and the Shortcut once more, so undo up to three layers.
+    for (var k = 0; k < 4; k++) {
+      var a0 = v.indexOf('{'), a1 = v.lastIndexOf('}');
+      if (a0 >= 0 && a1 > a0) { try { var j = JSON.parse(v.slice(a0, a1 + 1)); if (j && j.r) { data = j; return; } } catch (e) {} }
+      var nv = v; try { nv = decodeURIComponent(v); } catch (e) {}
+      if (nv === v) break;
+      v = nv;
+    }
     if (/^[a-z]+:\/\//i.test(v)) app = v.toLowerCase();
   });
   var appName = APPS[app] || 'the app';
