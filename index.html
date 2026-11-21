@@ -150,11 +150,28 @@
   var timer = null;
   function finish() {
     count.textContent = '0';
-    go.textContent = 'Open ' + appName;
-    go.classList.add('ready');
-    go.href = app
-      ? 'shortcuts://run-shortcut?name=' + encodeURIComponent('Gate Pass') + '&input=text&text=' + encodeURIComponent(app)
-      : '#';
+    var pass = function (scheme) {
+      return 'shortcuts://run-shortcut?name=' + encodeURIComponent('Gate Pass') + '&input=text&text=' + encodeURIComponent(scheme);
+    };
+    if (app) {
+      go.textContent = 'Open ' + appName;
+      go.classList.add('ready');
+      go.href = pass(app);
+    } else {
+      // The link lost the app name: offer each gated app instead.
+      [['instagram://', 'Instagram'], ['fb://', 'Facebook'], ['tiktok://', 'TikTok']].forEach(function (o, i) {
+        var b = go;
+        if (i > 0) {
+          b = go.cloneNode(false);
+          b.removeAttribute('id');
+          b.style.marginTop = '10px';
+          go.parentNode.insertBefore(b, document.getElementById('hint'));
+        }
+        b.textContent = 'Open ' + o[1];
+        b.classList.add('ready');
+        b.href = pass(o[0]);
+      });
+    }
     document.getElementById('hint').textContent = 'Or put the phone down.';
   }
   function step() {
