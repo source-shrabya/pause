@@ -108,7 +108,10 @@
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
-  // ---- read the link: #a=<app scheme>&d=<reminders>[&v=2] -----------------
+  // ---- read the link: #a=<app>&v=3&d=<reminders> ---------------------------
+  // a is a plain name (instagram, fb, tiktok). The Gate shortcut never puts
+  // "://" in the link, because the Open URLs action would open that app
+  // directly instead of this page. Older links carried the full scheme.
   var raw = location.hash.slice(1), params = {};
   raw.split('&').forEach(function (kv) {
     var i = kv.indexOf('=');
@@ -154,10 +157,13 @@
     if (!v) return;
     v = undo(v);
     if (/^[a-z]+:\/\//i.test(v)) { app = v.toLowerCase(); return; }
+    var bare = v.toLowerCase();
+    if (APPS[bare + '://']) { app = bare + '://'; return; }
+    if (bare === 'facebook') { app = 'fb://'; return; }
     data = data || fromJSON(v) || fromB64(v);
   });
   var appName = APPS[app] || '';
-  var direct = params.v === '2'; // new Gate shortcut: open the app straight from here
+  var direct = +params.v >= 2; // Gate v2+: open the app straight from here
 
   // ---- dates, in the phone's local time ------------------------------------
   function dayNum(iso) { var p = iso.split('-'); return Math.floor(Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5); }
